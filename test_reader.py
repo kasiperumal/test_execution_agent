@@ -1,7 +1,7 @@
-import yaml
 import redis
 import json
 import os
+import yaml
 
 # Load configuration from YAML
 with open("config.yaml", "r") as f:
@@ -9,9 +9,12 @@ with open("config.yaml", "r") as f:
 
 # Initialize Redis connection using config
 redis_config = config.get("redis", {})
+
 redis_client = redis.StrictRedis(
     host=redis_config.get("host", "localhost"),
     port=redis_config.get("port", 6379),
+    username=redis_config.get("username"),  # Added username support
+    password=redis_config.get("password"),  # Added password support
     db=redis_config.get("db", 0),
     decode_responses=redis_config.get("decode_responses", True)
 )

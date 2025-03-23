@@ -4,7 +4,9 @@ branch: "main"
 test_folder: "/src/test/java/com/payment/bdd"
 karate_runner: "mvn test -Dkarate.options="
 redis:
-  host: "localhost"
-  port: 6379
+  host: redis-12854.fcrce172.us-east-1-1.ec2.redns.redis-cloud.com
+  port: 12854
+  username: default
+  password: Y6sQhSvZsIugnBcPAo8zlavlwslWAYs1
   db: 0
-  decode_responses: true
+  decode_responses: True

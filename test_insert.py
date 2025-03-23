@@ -2,13 +2,21 @@ import yaml
 import redis
 import json
 
-# Connect to Redis
-try:
-    redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
-    redis_client.ping()  # Check if Redis is reachable
-except Exception as e:
-    print(f"❌ Redis Connection Error: {e}")
-    exit(1)
+# Load configuration from YAML
+with open("config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+# Initialize Redis connection using config
+redis_config = config.get("redis", {})
+
+redis_client = redis.StrictRedis(
+    host=redis_config.get("host", "localhost"),
+    port=redis_config.get("port", 6379),
+    username=redis_config.get("username"),  # Added username support
+    password=redis_config.get("password"),  # Added password support
+    db=redis_config.get("db", 0),
+    decode_responses=redis_config.get("decode_responses", True)
+)
 
 def insert_bdd_tests():
 # Define the JSON data
@@ -40,7 +48,7 @@ def insert_bdd_tests():
       Scenario: Verify GET endpoint
         Given path '/api/transactions'
         When method get
-        Then status 500"""
+        Then status 400"""
             }
         ]
     }
