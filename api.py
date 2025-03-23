@@ -1,3 +1,5 @@
+import os
+from flask import Flask, jsonify
 from fastapi import FastAPI
 from test_reader import get_test_cases
 from test_executor import execute_karate_tests
@@ -23,3 +25,12 @@ def run_tests(app_id: str, run_id: str):
         return {"message": "Tests executed", "result": result}
     else:
         return {"error": "No test cases found for the given app_id and run_id."}
+
+pp = Flask(__name__)
+
+@app.route('/list-files', methods=['GET'])
+def list_files():
+    path = "/opt/render/project/src/karate-tests"
+    files = os.listdir(path) if os.path.exists(path) else []
+    return jsonify(files)
+
