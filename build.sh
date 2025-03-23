@@ -1,14 +1,8 @@
-# !/bin/bash
-
-# ✅ Download and install OpenJDK 11 manually
-mkdir -p /opt/java
-curl -o /opt/java/openjdk.tar.gz https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz
-tar -xvzf /opt/java/openjdk.tar.gz -C /opt/java
-export JAVA_HOME=/opt/java/jdk-11
+# Install Java (OpenJDK 17)
+apt-get update && apt-get install -y openjdk-17-jdk
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export PATH=$JAVA_HOME/bin:$PATH
-
-# ✅ Verify Java installation
-java -version
+java -version  # Verify Java installation
 
 # ✅ Run the Python application
 exec python3 -m uvicorn api:app --host 0.0.0.0 --port 10000

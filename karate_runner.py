@@ -14,7 +14,7 @@ def run_karate_tests():
 
         # ✅ Run Karate and capture full output
         process = subprocess.Popen(
-            ['java', '-jar', karate_jar, test_dir],
+            ['/usr/lib/jvm/java-17-openjdk-amd64/bin/java', '-jar', karate_jar, test_dir],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
