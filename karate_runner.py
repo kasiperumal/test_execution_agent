@@ -1,9 +1,17 @@
 import subprocess
 import os
 import re
+import jdk
 
 def run_karate_tests():
     """Execute Karate BDD tests and return correct test results summary after execution."""
+    # Install JDK version 11
+    java_home = jdk.install('11')
+
+    # Set JAVA_HOME and update PATH
+    os.environ['JAVA_HOME'] = java_home
+    os.environ['PATH'] = f"{java_home}/bin:" + os.environ['PATH']
+
     try:
         karate_jar = os.path.join('libs', 'karate-1.4.0.jar')
         test_dir = os.path.abspath("karate-tests")
@@ -14,7 +22,7 @@ def run_karate_tests():
 
         # ✅ Run Karate and capture full output
         process = subprocess.Popen(
-            ['/usr/lib/jvm/java-17-openjdk-amd64/bin/java', '-jar', karate_jar, test_dir],
+            ['java', '-jar', karate_jar, test_dir],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
