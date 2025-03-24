@@ -1,62 +1,77 @@
 import subprocess
 import os
-import re
 import jdk
+import re
 
-def run_karate_tests():
-    """Execute Karate BDD tests and return correct test results summary after execution."""
-    # Install JDK version 11
+def run_karate_tests(test_cases_json):
+    """Execute Karate tests directly from JSON input without creating files."""
     java_home = jdk.install('11')
-
-    # Set JAVA_HOME and update PATH
     os.environ['JAVA_HOME'] = java_home
     os.environ['PATH'] = f"{java_home}/bin:" + os.environ['PATH']
 
     try:
-        karate_jar = os.path.join('libs', 'karate-1.4.0.jar')
-        test_dir = os.path.abspath("karate-tests")
+        # ✅ Render-compatible paths
+        base_dir = "/opt/render/project/src"  # Render's default deployment directory
+        karate_jar = os.path.join(base_dir, 'libs', 'karate-1.4.0.jar')
+        test_dir = os.path.join(base_dir, 'karate-tests')
 
-        if not os.path.exists(test_dir):
-            print(f"❌ Test directory not found: {test_dir}")
-            return {"error": "Test directory not found"}
+        # ✅ Ensure test directory exists (critical for Render)
+        os.makedirs(test_dir, exist_ok=True, mode=0o755)
+        print(f"🔍 Checking test directory: {test_dir}")
+        print(f"🔍 Directory contents: {os.listdir(test_dir)}")
 
-        # ✅ Run Karate and capture full output
+        if not os.path.exists(karate_jar):
+            print(f"❌ Karate JAR not found: {karate_jar}")
+            return {"error": "Karate JAR not found"}
+
+        # ✅ Run Karate with explicit paths
+        cmd = [
+            'java', '-jar', karate_jar,
+            test_dir,
+            '-o', os.path.join(test_dir, 'reports')  # Output directory for reports
+        ]
+
         process = subprocess.Popen(
-            ['java', '-jar', karate_jar, test_dir],
+            cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
         )
 
-        karate_output, karate_error = process.communicate()  # Wait and capture full output
+        karate_output, karate_error = process.communicate()
 
-        # 🔍 Debugging: Print full Karate output
-        print("\n🔹 Karate Raw Output:\n", karate_output)
+        # ✅ Enhanced debugging
+        print("\n🔹 Karate STDOUT:\n", karate_output)
+        print("\n🔹 Karate STDERR:\n", karate_error)
 
-        # ✅ Extract only the last summary block using regex
-        summary_matches = re.findall(r"scenarios:\s*(\d+)\s*\|\s*passed:\s*(\d+)\s*\|\s*failed:\s*(\d+)", karate_output)
+        # ✅ Improved regex pattern for summary
+        summary_pattern = r"scenarios:\s*(\d+)\s*\|\s*passed:\s*(\d+)\s*\|\s*failed:\s*(\d+)"
+        summary_matches = re.findall(summary_pattern, karate_output)
 
         if summary_matches:
-            # Get the last occurrence to avoid older logs
             total_scenarios, passed_tests, failed_tests = map(int, summary_matches[-1])
+            status = "success" if failed_tests == 0 else "failed"
         else:
-            print("❌ Could not parse test results correctly!")
-            return {"error": "Failed to parse test results"}
+            print("❌ No valid test summary found!")
+            return {
+                "error": "No test summary found",
+                "raw_output": karate_output,
+                "raw_error": karate_error
+            }
 
-        # ✅ Build the final test report
-        summary = {
+        return {
             "scenarios": total_scenarios,
             "passed": passed_tests,
             "failed": failed_tests,
-            "status": "success" if failed_tests == 0 else "failed"
+            "status": status,
+            "reports_dir": os.path.join(test_dir, 'reports')
         }
 
-        return summary
+    except Exception as e:
+        print(f"❌ Critical error: {str(e)}")
+        return {"error": str(e), "type": type(e)._name_}
 
-    except subprocess.SubprocessError as e:
-        print("❌ Karate execution failed:", str(e))
-        return {"error": "Karate execution failed", "details": str(e)}
 
 if __name__ == "__main__":
     test_results = run_karate_tests()
-    print("\n✅ Karate Test Summary:",test_results)
+    print("\n✅ Final Test Summary:",test_results)
