@@ -3,7 +3,7 @@ import os
 import jdk
 import re
 
-def run_karate_tests(test_cases_json):
+def run_karate_tests():
     """Execute Karate tests directly from JSON input without creating files."""
     java_home = jdk.install('11')
     os.environ['JAVA_HOME'] = java_home
